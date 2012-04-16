@@ -16,9 +16,9 @@ SoftwareSerial sjSerial = SoftwareSerial(rxPin, txPin);
 
 
 //this is the service i'm calling
-//http://www.suniljohn.com/labs/dogsoflatenight/twitterpoll.php?since_id=0&track=insultcomicdog%20OR%20formetopoopon%20OR%20for%20me%20to%20poop%20on%20-RT
+//http://www.suniljohn.com/labs/dogsoflatenight/twitterpoll.php?since_id=0&track=insultcomicdog%20OR%20formetopoopon%20OR%20%22for%20me%20to%20poop%20on%22%20-RT
 
-char twitterSearchTerms[] = insultcomicdog%20OR%20formetopoopon%20OR%20%22for%20me%20to%20poop%20on%22%20-RT";
+char twitterSearchTerms[] = "insultcomicdog%20OR%20formetopoopon%20OR%20%22for%20me%20to%20poop%20on%22%20-RT";
 
 
 float since_id = 0;
