@@ -63,7 +63,7 @@ char current_since_id_str[20] = "0";
 char next_since_id_str[20];
 
 int totalnumsearchresults = 0;
-int maxSearchResults = 1;
+int maxSearchResults = 3;
 
 char totalnumsearchresults_str[200];
 char from_user[20];
