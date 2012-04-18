@@ -15,6 +15,7 @@
 #define txPin 2
 #define rxPin 3
 SoftwareSerial sjSerial = SoftwareSerial(rxPin, txPin);
+#define speakJetBusyPin 4
 //SpeakJet shield vars
 
 //WAV shield vars
@@ -221,6 +222,11 @@ void enableWAVShield()
 }
 
 void loop() {
+
+  while(digitalRead(speakJetBusyPin)){
+    // code to move mouth which speakjet is busy
+    Serial.println("****************speakJet is busy");
+  } 
   
   if(enableTwitterSearch==true) {
         enableWiFlyShield();
@@ -314,24 +320,16 @@ void loop() {
         delay (60000); 
         // don't make this less than 30000 (30 secs), because you can't connect to the twitter servers faster (you'll be banned)
   } else{
-//     //Serial.println("motion detection mode");
-//     if(isPlayingSound==false){
-//       isPlayingSound=true;
-//       playRandomSound();
-//       //playcomplete("2poops.wav");
-//       voCount++;
-//     }
-     
+    
      alarmValue = analogRead(alarmPin);
 
       if(alarmValue < 100) {
-          Serial.println("motion detected");
+         Serial.println("motion detected");
          voCount++;
          playRandomSound();
       } 
       
       delay(timer);
-     
   }
 }
 
@@ -489,7 +487,7 @@ void playcomplete(char *name) {
             delay(5);
           }
           
-       Serial.println (v2);
+       //Serial.println (v2);
     
        if (v2 > 268)
             {
@@ -515,7 +513,7 @@ void playcomplete(char *name) {
    Serial.println("voCount");
    Serial.println(voCount);
     
-  if(voCount==5){
+  if(voCount==3){
        voCount=0;
        enableWiFlyShield();
        enableTwitterSearch=true; 
