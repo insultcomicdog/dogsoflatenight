@@ -63,7 +63,8 @@ char current_since_id_str[20] = "0";
 char next_since_id_str[20];
 
 int totalnumsearchresults = 0;
-int maxSearchResults = 3;
+int maxSearchResults = 1;
+int maxVOCount= 1;
 
 char totalnumsearchresults_str[200];
 char from_user[20];
@@ -231,7 +232,7 @@ void loop() {
   if(enableTwitterSearch==true) {
         enableWiFlyShield();
         Serial.println("twitter search enabled");
-        sjSerial.println("Searching Twitter for poop.");
+        sjSerial.println("Serching Twitter for poop."); //this is not a typo...it actually sounds better read by the SpeakJet shield
         
         if (client.connect()) {
         
@@ -311,7 +312,7 @@ void loop() {
             Serial.println("there are no new results for my keywords");
             enableTwitterSearch=false;
             Serial.println("twitter search disabled");
-            sjSerial.println("Switching to motion detection mode.");
+            sjSerial.println("There is no poop on twitter. Switching to motion detection mode.");
             enableWAVShield();
         }
         
@@ -513,7 +514,7 @@ void playcomplete(char *name) {
    Serial.println("voCount");
    Serial.println(voCount);
     
-  if(voCount==3){
+  if(voCount==maxVOCount){
        voCount=0;
        enableWiFlyShield();
        enableTwitterSearch=true; 
