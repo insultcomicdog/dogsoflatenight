@@ -4,7 +4,7 @@
 #include "Credentials.h"
 #include <TextFinder.h>
 
-#define SSWAV 33 //cable select pin for WAV shield
+#define SSWAV 49 //cable select pin for WAV shield
 #define SSWIFLY 53 //cable select pin for WIFLY shield
 
 //SpeakJet shield vars
@@ -40,7 +40,7 @@ int alarmValue = 0;
 //motion sensor vars
 
 //servo vars
-int servoPin = 41; 
+int servoPin = 22; 
 
 int minPulse     =  600;  // minimum servo position
 int maxPulse     =  2200; // maximum servo position
@@ -85,6 +85,8 @@ int voCount = 0;
 void setup() {
   
   Serial.begin(9600);
+  
+  setupWAVANDWIFLY();
 
   WiFly.begin();
   
@@ -105,6 +107,15 @@ void setup() {
    // connect to Twitter:
   delay(10000);
 
+}
+
+void setupWAVANDWIFLY()
+{
+  pinMode(SSWAV, OUTPUT);
+  pinMode(SSWIFLY, OUTPUT);
+
+  digitalWrite(SSWAV, HIGH);
+  digitalWrite(SSWIFLY, HIGH);
 }
 
 void initMotionSensor()
@@ -207,6 +218,7 @@ void initWAVShield()
   putstring_nl("Ready!");
 }
 
+
 //this enables the cable selection pin for WiFly shield
 void enableWiFlyShield()
 {
@@ -217,6 +229,7 @@ void enableWiFlyShield()
 //this enables the cable selection pin for WAV shield
 void enableWAVShield()
 {
+  
   //digitalWrite(10, HIGH); //physical SS pin high before setting SPCR
   digitalWrite(SSWIFLY, HIGH);
   digitalWrite(SSWAV, LOW);
