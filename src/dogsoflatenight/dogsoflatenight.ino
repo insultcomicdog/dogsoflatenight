@@ -18,6 +18,16 @@ SoftwareSerial sjSerial = SoftwareSerial(rxPin, txPin);
 #define speakJetBusyPin 4
 //SpeakJet shield vars
 
+//Thermal Printer vars
+#include <SoftwareSerial.h>
+#include <Thermal.h>
+
+int printer_RX_Pin = 24; //green wire
+int printer_TX_Pin = 26; //yellow wire
+
+Thermal printer(printer_RX_Pin, printer_TX_Pin, 19200);
+//Thermal Printer vars
+
 //WAV shield vars
 #include <FatReader.h>
 #include <SdReader.h>
@@ -315,6 +325,10 @@ void loop() {
         
         if(totalnumsearchresults!=0){
             readTweet(tweet);
+            
+            delay (5000);
+            
+            printTweet(tweet);
       
             for (int i=0; i <= 20; i++){
               current_since_id_str[i] = next_since_id_str[i];
@@ -331,6 +345,7 @@ void loop() {
         
         Serial.println();
         Serial.println("delay...");
+        
         delay (60000); 
         // don't make this less than 30000 (30 secs), because you can't connect to the twitter servers faster (you'll be banned)
   } else{
@@ -351,6 +366,18 @@ void readTweet(String thisString)
 {
   sjSerial.println(thisString); 
 }
+
+void printTweet(String thisString)
+{
+  printer.justify('L'); //sets text justification (right, left, center) accepts 'L', 'C', 'R'
+   
+  printer.setSize('S'); // set type size, accepts 'S', 'M', 'L'
+  printer.println(thisString); //print 
+  
+  printer.feed(); //advance one line
+  printer.feed(); //advance one line
+}
+
 
 
 void playRandomSound(){
