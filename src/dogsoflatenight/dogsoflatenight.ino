@@ -15,7 +15,7 @@
 #define txPin 2
 #define rxPin 3
 SoftwareSerial sjSerial = SoftwareSerial(rxPin, txPin);
-#define speakJetBusyPin 4
+#define busyPin 4
 //SpeakJet shield vars
 
 //Thermal Printer vars
@@ -89,6 +89,7 @@ TextFinder  finder( client, 2 );
 
 boolean enableTwitterSearch = false;
 boolean isPlayingSound = false;
+boolean speakJetIsBusy = false;
 int voCount = 0;
 
 
@@ -97,6 +98,8 @@ void setup() {
   Serial.begin(9600);
   
   setupWAVANDWIFLY();
+  
+  enableWiFlyShield();
 
   WiFly.begin();
   
@@ -109,13 +112,17 @@ void setup() {
 
   Serial.println("Associated!");
   
-  initSpeakJet();
-  initWAVShield();
-  initMotionSensor();
-  initServo();
-
-   // connect to Twitter:
   delay(10000);
+  
+  enableWAVShield();
+
+  initSpeakJet();
+  delay(50);
+  initWAVShield();
+  delay(50);
+  initMotionSensor();
+  delay(50);
+  initServo();
 
 }
 
@@ -126,15 +133,22 @@ void setupWAVANDWIFLY()
 
   digitalWrite(SSWAV, HIGH);
   digitalWrite(SSWIFLY, HIGH);
+  
+  pinMode(10, INPUT);
+  pinMode(11, INPUT);
+  pinMode(12, INPUT);
+  pinMode(13, INPUT);
 }
 
 void initMotionSensor()
 {
+  Serial.println("initMotionSensor");
   pinMode(alarmPin, INPUT);
 }
 
 void initServo()
 {
+  Serial.println("initServo");
   // set up servo pin
   pinMode(servoPin, OUTPUT);  // Set servo pin 18 (analog 4) as an output pin
   centerServo = maxPulse - ((maxPulse - minPulse)/2);
@@ -143,9 +157,11 @@ void initServo()
 
 void initSpeakJet()
 {
+  Serial.println("initSpeakJet");
  // initialize the serial communications with the SpeakJet-TTS256
   pinMode(rxPin, INPUT);
   pinMode(txPin, OUTPUT);
+  pinMode(busyPin, INPUT);
   sjSerial.begin(9600);// set the data rate for the SoftwareSerial port
   delay(1000); // wait a second for the Arduino resets to finish (speaks "ready")
   sjSerial.println("The Dogs of Late Night is now online. All your poop are belong to us."); // send it to the SpeakJet
@@ -232,25 +248,52 @@ void initWAVShield()
 //this enables the cable selection pin for WiFly shield
 void enableWiFlyShield()
 {
+  //setupWAVANDWIFLY();
+  //delay(50);
+  //resetSPI();
+  delay(50);
   digitalWrite(SSWAV, HIGH);
+  delay(50);
   digitalWrite(SSWIFLY, LOW);
+  delay(50);
+  resetSPI();
 }
 
 //this enables the cable selection pin for WAV shield
 void enableWAVShield()
 {
-  
-  //digitalWrite(10, HIGH); //physical SS pin high before setting SPCR
+ //setupWAVANDWIFLY();
+  //delay(50);
+  //resetSPI();
+  delay(50);
   digitalWrite(SSWIFLY, HIGH);
+  delay(50);
   digitalWrite(SSWAV, LOW);
+  delay(50);
+  resetSPI();
+}
+
+void resetSPI()
+{
+  SPI.end();
+  SPI.begin();
+}
+
+void SJBusy(){
+  delay(20); // wait 12ms minimum before checking SpeakJet busy pin
+  while(digitalRead(busyPin)){
+    speakJetIsBusy=true;
+    delay(250); // wait here while SpeakJet is busy (pin 4 is true)
+    Serial.println("SPEAKJET IS BUSY");
+    //animateMouth();
+  }
+  speakJetIsBusy=false;
+  delay(250); // a bit more delay after busyPin goes false
 }
 
 void loop() {
 
-  while(digitalRead(speakJetBusyPin)){
-    // code to move mouth which speakjet is busy
-    Serial.println("****************speakJet is busy");
-  } 
+  SJBusy();
   
   if(enableTwitterSearch==true) {
         enableWiFlyShield();
@@ -328,7 +371,7 @@ void loop() {
             
             delay (5000);
             
-            printTweet(tweet);
+            //printTweet(tweet); //disabling this for now to save on paper
       
             for (int i=0; i <= 20; i++){
               current_since_id_str[i] = next_since_id_str[i];
@@ -350,15 +393,20 @@ void loop() {
         // don't make this less than 30000 (30 secs), because you can't connect to the twitter servers faster (you'll be banned)
   } else{
     
-     alarmValue = analogRead(alarmPin);
-
-      if(alarmValue < 100) {
-         Serial.println("motion detected");
-         voCount++;
-         playRandomSound();
-      } 
+    if(speakJetIsBusy==false){
       
-      delay(timer);
+          alarmValue = analogRead(alarmPin);
+          
+          Serial.println(alarmValue);
+    
+          if(alarmValue < 100) {
+             Serial.println("motion detected");
+             voCount++;
+             playRandomSound();
+          } 
+          
+          delay(timer);
+     }
   }
 }
 
@@ -512,41 +560,43 @@ void playRandomSound(){
 
 // Plays a full file from beginning to end with no pause.
 void playcomplete(char *name) {
-  char i;
-  uint8_t volume;
-  int v2;
+//  char i;
+//  uint8_t volume;
+//  int v2;
   
   // call our helper to find and play this name
   playfile(name);
   while (wave.isplaying) {
   // do nothing while its playing
  
-       volume = 0;
-          for (i=0; i<8; i++)
-          {
-            v2 = analogRead(1);
-            delay(5);
-          }
-          
-       //Serial.println (v2);
-    
-       if (v2 > 268)
-            {
-               //pulseWidth = 1800;
-               pulseWidth = maxPulse;
-               mouthchange = 1;
-            }
-               else
-            {
-              // pulseWidth = 800;
-              pulseWidth = minPulse;
-               mouthchange = 1;
-            }
-    
+//       volume = 0;
+//          for (i=0; i<8; i++)
+//          {
+//            v2 = analogRead(1);
+//            delay(5);
+//          }
+//          
+//       //Serial.println (v2);
+//    
+//       if (v2 > 268)
+//            {
+//               //pulseWidth = 1800;
+//               pulseWidth = maxPulse;
+//               mouthchange = 1;
+//            }
+//               else
+//            {
+//              // pulseWidth = 800;
+//              pulseWidth = minPulse;
+//               mouthchange = 1;
+//            }
+//    
+//      
+//      digitalWrite(servoPin, HIGH);   // start the pulse
+//      delayMicroseconds(pulseWidth);  // pulse width
+//      digitalWrite(servoPin, LOW);    // stop the pulse
       
-      digitalWrite(servoPin, HIGH);   // start the pulse
-      delayMicroseconds(pulseWidth);  // pulse width
-      digitalWrite(servoPin, LOW);    // stop the pulse
+      animateMouth();
   }
   // now its done playing
   isPlayingSound=false;
@@ -556,10 +606,47 @@ void playcomplete(char *name) {
     
   if(voCount==maxVOCount){
        voCount=0;
+       Serial.println("switching to wifly now");
        enableWiFlyShield();
        enableTwitterSearch=true; 
   }
 }
+
+void animateMouth(){
+   char i;
+   uint8_t volume;
+   int v2;
+   
+   volume = 0;
+   
+    for (i=0; i<8; i++)
+    {
+      v2 = analogRead(1);
+      delay(5);
+    }
+          
+       //Serial.println (v2);
+
+   if (v2 > 268)
+      {
+         //pulseWidth = 1800;
+         pulseWidth = maxPulse;
+         mouthchange = 1;
+      }
+         else
+      {
+        // pulseWidth = 800;
+        pulseWidth = minPulse;
+         mouthchange = 1;
+      }
+    
+      
+      digitalWrite(servoPin, HIGH);   // start the pulse
+      delayMicroseconds(pulseWidth);  // pulse width
+      digitalWrite(servoPin, LOW);    // stop the pulse
+  
+}
+
 
 void playfile(char *name) {
   
