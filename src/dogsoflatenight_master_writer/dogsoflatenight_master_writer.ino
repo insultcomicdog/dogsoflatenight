@@ -186,7 +186,14 @@ void loop()
             
             delay (5000);
             
-            //printTweet(tweet); //disabling this for now to save on paper
+            //disabling this for now to save on paper
+            printSRC(created_at); 
+            delay(3000);
+            printSRC(from_user); 
+            delay(3000);
+            printTweet(tweet); 
+            delay(3000);
+            advancePrinter();
       
             for (int i=0; i <= 20; i++){
               current_since_id_str[i] = next_since_id_str[i];
@@ -235,11 +242,25 @@ void readTweet(String thisString)
 
 void printTweet(String thisString)
 {
-  printer.justify('L'); //sets text justification (right, left, center) accepts 'L', 'C', 'R'
+  //printer.justify('L'); //sets text justification (right, left, center) accepts 'L', 'C', 'R'
    
-  printer.setSize('S'); // set type size, accepts 'S', 'M', 'L'
+  //printer.setSize('S'); // set type size, accepts 'S', 'M', 'L'
   printer.println(thisString); //print 
   
+  //printer.feed(); //advance one line
+  //printer.feed(); //advance one line
+}
+
+void printSRC(String thisString)
+{
+  printer.boldOn();
+  printer.println(thisString);
+  printer.boldOff(); 
+  //printer.feed();
+}
+
+void advancePrinter()
+{
   printer.feed(); //advance one line
   printer.feed(); //advance one line
 }
