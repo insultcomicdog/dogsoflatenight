@@ -38,7 +38,6 @@ char next_since_id_str[20];
 
 int totalnumsearchresults = 0;
 int maxSearchResults = 1;
-int maxVOCount= 1;
 
 char totalnumsearchresults_str[200];
 char from_user[20];
@@ -52,13 +51,19 @@ WiFlyClient client("suniljohn.com", 80);
 TextFinder  finder( client, 2 );
 
 boolean enableTwitterSearch = true;
+boolean isSearching = false;
 boolean isPlayingSound = false;
 boolean speakJetIsBusy = false;
-int voCount = 0;
 
 
-byte motionIsOn = 0;
+
+byte slaveMode = 0;
 int motionCounter= 0;
+
+unsigned long currentTime;
+unsigned long loopTime;
+
+
 
 void setup()
 {
@@ -80,6 +85,9 @@ void setup()
   delay(10000);
   
   initSpeakJet();
+  
+  currentTime = millis();
+  loopTime = currentTime;  
 }
 
 void initSpeakJet()
@@ -98,11 +106,19 @@ void SJBusy(){
   delay(20); // wait 12ms minimum before checking SpeakJet busy pin
   while(digitalRead(busyPin)){
     speakJetIsBusy=true;
+    slaveMode=2;
+    Wire.beginTransmission(4); // transmit to device #4
+    Wire.write(slaveMode);              // sends one byte  
+    Wire.endTransmission();    // stop transmitting
     delay(250); // wait here while SpeakJet is busy (pin 4 is true)
     Serial.println("SPEAKJET IS BUSY");
     //animateMouth();
   }
   speakJetIsBusy=false;
+  slaveMode=0;
+  Wire.beginTransmission(4); // transmit to device #4
+  Wire.write(slaveMode);              // sends one byte  
+  Wire.endTransmission();    // stop transmitting
   delay(250); // a bit more delay after busyPin goes false
 }
 
@@ -111,13 +127,21 @@ void loop()
   
   SJBusy();
   
+  currentTime = millis();
+  
   if(enableTwitterSearch==true) {
-        Serial.println("twitter search enabled");
-        sjSerial.println("Serching Twitter for poop."); //this is not a typo...it actually sounds better read by the SpeakJet shield
-        
+    
+        if(isSearching==false){
+          Serial.println("twitter search enabled");
+          sjSerial.println("Serching Twitter for poop."); //this is not a typo...it actually sounds better read by the SpeakJet shield
+          isSearching=true;
+        }
+       
+        if(currentTime >= (loopTime + 60000)){ 
+    
         if (client.connect()) {
         
-          Serial.println("making HTTP request...");
+            Serial.println("making HTTP request...");
           
       //    client.println("GET /labs/dogsoflatenight/twitterpoll.php?since_id=0&track=insultcomicdog%20OR%20formetopoopon HTTP/1.1");
       //    client.println("HOST: www.suniljohn.com");
@@ -182,10 +206,7 @@ void loop()
         Serial.println(totalnumsearchresults);
         
         if(totalnumsearchresults!=0){
-            readTweet(tweet);
-            
-            delay (5000);
-            
+
             //disabling this for now to save on paper
             printSRC(created_at); 
             delay(3000);
@@ -194,6 +215,9 @@ void loop()
             printTweet(tweet); 
             delay(3000);
             advancePrinter();
+            delay (5000);
+            
+            readTweet(tweet);
       
             for (int i=0; i <= 20; i++){
               current_since_id_str[i] = next_since_id_str[i];
@@ -207,20 +231,25 @@ void loop()
             sjSerial.println("There is no poop on twitter. Switching to motion detection mode.");
         }
         
-        Serial.println();
-        Serial.println("delay...");
+          Serial.println();
+          Serial.println("delay...");
         
-        delay (60000); 
+          isSearching=false;
+          loopTime = currentTime;
+        }
+        
+        //delay (60000); 
         // don't make this less than 30000 (30 secs), because you can't connect to the twitter servers faster (you'll be banned)
   } else{
     
     if(speakJetIsBusy==false){  
-        motionIsOn=1;
+        slaveMode=1;
         motionCounter++;
         if(motionCounter==100) {
-            motionIsOn=0;
+            slaveMode=0;
             motionCounter=0;
             enableTwitterSearch=true;
+            loopTime = currentTime;
         }
         
         Serial.println("motionCounter");
@@ -229,7 +258,7 @@ void loop()
   }
   
   Wire.beginTransmission(4); // transmit to device #4
-  Wire.write(motionIsOn);              // sends one byte  
+  Wire.write(slaveMode);              // sends one byte  
   Wire.endTransmission();    // stop transmitting
   delay(500);
   

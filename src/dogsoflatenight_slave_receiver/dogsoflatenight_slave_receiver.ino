@@ -40,6 +40,7 @@ long lastPulse   = 0;    // recorded time (ms) of the last pulse
 //servo vars
 
 boolean motionIsOn = false;
+boolean speakJetIsOn = false;
 
 void setup()
 {
@@ -159,6 +160,10 @@ void loop()
       } 
       
       delay(timer);
+  }
+  
+  if(speakJetIsOn==true){
+     animateMouth();
   }
 }
 
@@ -378,9 +383,13 @@ void receiveEvent(int howMany)
   
   if(x==0){
     motionIsOn=false;
+    speakJetIsOn=false;
   } else if (x==1) {
     motionIsOn=true;
+  } else if (x==2) {
+    speakJetIsOn=true;
   }
   
-  Serial.println(motionIsOn);
+  //Serial.println(motionIsOn);
+  //Serial.println(speakJetIsOn);
 }
