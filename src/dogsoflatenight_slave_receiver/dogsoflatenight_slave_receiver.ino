@@ -326,9 +326,9 @@ void animateMouth(){
       delay(5);
     }
           
-       //Serial.println (v2);
+       Serial.println (v2);
 
-   if (v2 > 268)
+       if (v2 > 268)
       {
          //pulseWidth = 1800;
          pulseWidth = maxPulse;
@@ -390,6 +390,6 @@ void receiveEvent(int howMany)
     speakJetIsOn=true;
   }
   
-  //Serial.println(motionIsOn);
-  //Serial.println(speakJetIsOn);
+  Serial.println(x);
+
 }

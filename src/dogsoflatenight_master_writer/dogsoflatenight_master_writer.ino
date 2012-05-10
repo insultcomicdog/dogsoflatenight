@@ -63,11 +63,21 @@ int motionCounter= 0;
 unsigned long currentTime;
 unsigned long loopTime;
 
+//status CONSTS
+int STATUS_MOTION_DETECTION_MODE = 0;
+int STATUS_WIFI_CONNECTED = 1;
+int STATUS_WIFI_DISCONNECTED = 2;
+
+int statusMotionDectionMode = 40; //blue
+int statusWifiConnected = 42; //green
+int statusWifiDisconnected = 44; //red
 
 
 void setup()
 {
   Serial.begin(9600); 
+  initStatusLEDs();
+  setLEDStatus(STATUS_WIFI_DISCONNECTED);
   Wire.begin(); // join i2c bus (address optional for master)
   Serial.println("master setup");
   
@@ -81,6 +91,7 @@ void setup()
   }  
 
   Serial.println("Associated!");
+  setLEDStatus(STATUS_WIFI_CONNECTED);
   
   delay(10000);
   
@@ -88,6 +99,34 @@ void setup()
   
   currentTime = millis();
   loopTime = currentTime;  
+}
+
+void initStatusLEDs()
+{
+  pinMode(statusMotionDectionMode, OUTPUT);
+  pinMode(statusWifiConnected, OUTPUT);     
+  pinMode(statusWifiDisconnected, OUTPUT); 
+  
+  digitalWrite(statusMotionDectionMode, HIGH);
+  digitalWrite(statusWifiConnected, HIGH);
+  digitalWrite(statusWifiDisconnected, HIGH);
+}
+
+void setLEDStatus(int status)
+{
+    if(status==STATUS_MOTION_DETECTION_MODE){
+      digitalWrite(statusMotionDectionMode, LOW);  
+      digitalWrite(statusWifiConnected, HIGH);
+      digitalWrite(statusWifiDisconnected, HIGH);
+    } else if(status==STATUS_WIFI_CONNECTED){
+      digitalWrite(statusMotionDectionMode, HIGH);  
+      digitalWrite(statusWifiConnected, LOW);
+      digitalWrite(statusWifiDisconnected, HIGH);
+    } else if(status==STATUS_WIFI_DISCONNECTED){
+      digitalWrite(statusMotionDectionMode, HIGH);  
+      digitalWrite(statusWifiConnected, HIGH);
+      digitalWrite(statusWifiDisconnected, LOW);
+    }
 }
 
 void initSpeakJet()
@@ -112,14 +151,17 @@ void SJBusy(){
     Wire.endTransmission();    // stop transmitting
     delay(250); // wait here while SpeakJet is busy (pin 4 is true)
     Serial.println("SPEAKJET IS BUSY");
-    //animateMouth();
   }
-  speakJetIsBusy=false;
-  slaveMode=0;
-  Wire.beginTransmission(4); // transmit to device #4
-  Wire.write(slaveMode);              // sends one byte  
-  Wire.endTransmission();    // stop transmitting
-  delay(250); // a bit more delay after busyPin goes false
+  
+  
+  if(speakJetIsBusy==true){
+    speakJetIsBusy=false;
+    slaveMode=0;
+    Wire.beginTransmission(4); // transmit to device #4
+    Wire.write(slaveMode);              // sends one byte  
+    Wire.endTransmission();    // stop transmitting
+    delay(250); // a bit more delay after busyPin goes false
+  }
 }
 
 void loop()
@@ -229,6 +271,7 @@ void loop()
             enableTwitterSearch=false;
             Serial.println("twitter search disabled");
             sjSerial.println("There is no poop on twitter. Switching to motion detection mode.");
+            setLEDStatus(STATUS_MOTION_DETECTION_MODE);
         }
         
           Serial.println();
@@ -250,6 +293,7 @@ void loop()
             motionCounter=0;
             enableTwitterSearch=true;
             loopTime = currentTime;
+            setLEDStatus(STATUS_WIFI_CONNECTED);
         }
         
         Serial.println("motionCounter");
