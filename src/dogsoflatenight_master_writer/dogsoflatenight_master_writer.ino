@@ -68,9 +68,13 @@ int STATUS_MOTION_DETECTION_MODE = 0;
 int STATUS_WIFI_CONNECTED = 1;
 int STATUS_WIFI_DISCONNECTED = 2;
 
-int statusMotionDectionMode = 40; //blue
-int statusWifiConnected = 42; //green
+int statusWifiBlue = 42; //blue
+int statusWifiConnected = 40; //green
 int statusWifiDisconnected = 44; //red
+
+int statusMotionDectionMode = 43; //blue
+int statusMotionDectionModeGreen = 41; //green
+int statusMotionDectionModeRed = 45; //red
 
 
 void setup()
@@ -103,21 +107,27 @@ void setup()
 
 void initStatusLEDs()
 {
-  pinMode(statusMotionDectionMode, OUTPUT);
+  pinMode(statusWifiBlue, OUTPUT);
   pinMode(statusWifiConnected, OUTPUT);     
   pinMode(statusWifiDisconnected, OUTPUT); 
   
-  digitalWrite(statusMotionDectionMode, HIGH);
+  digitalWrite(statusWifiBlue, HIGH);
   digitalWrite(statusWifiConnected, HIGH);
   digitalWrite(statusWifiDisconnected, HIGH);
+  
+  pinMode(statusMotionDectionMode, OUTPUT);
+  pinMode(statusMotionDectionModeGreen, OUTPUT);     
+  pinMode(statusMotionDectionModeRed, OUTPUT); 
+  
+  digitalWrite(statusMotionDectionMode, HIGH);
+  digitalWrite(statusMotionDectionModeGreen, HIGH);
+  digitalWrite(statusMotionDectionModeRed, HIGH);
 }
 
 void setLEDStatus(int status)
 {
     if(status==STATUS_MOTION_DETECTION_MODE){
-      digitalWrite(statusMotionDectionMode, LOW);  
-      digitalWrite(statusWifiConnected, HIGH);
-      digitalWrite(statusWifiDisconnected, HIGH);
+      digitalWrite(statusMotionDectionMode, LOW);
     } else if(status==STATUS_WIFI_CONNECTED){
       digitalWrite(statusMotionDectionMode, HIGH);  
       digitalWrite(statusWifiConnected, LOW);

@@ -23,20 +23,24 @@ int alarmPin = 0;
 int alarmValue = 0;
 //motion sensor vars
 
+#include <ServoTimer2.h>  // the servo library
+
 //servo vars
+ServoTimer2 myservo;
 int servoPin = 9; 
-
-int minPulse     =  600;  // minimum servo position
-int maxPulse     =  2200; // maximum servo position
-int turnRate     =  1800;  // servo turn rate increment (larger value, faster rate)
-int refreshTime  =  20;   // time (ms) between pulses (50Hz)
-int mouthchange = 6;  //checks to see if mouth position needs to be changed
-
-
-/** The Arduino will calculate these values for you **/
-int centerServo;         // center servo position
-int pulseWidth;          // servo pulse width
-long lastPulse   = 0;    // recorded time (ms) of the last pulse
+#define degreesToUS( _degrees) (_degrees * 6 + 900) // macro to convert degrees to microseconds
+int pos = 50;    // variable to store the servo position 
+//int minPulse     =  600;  // minimum servo position
+//int maxPulse     =  2200; // maximum servo position
+//int turnRate     =  1800;  // servo turn rate increment (larger value, faster rate)
+//int refreshTime  =  20;   // time (ms) between pulses (50Hz)
+//int mouthchange = 6;  //checks to see if mouth position needs to be changed
+//
+//
+///** The Arduino will calculate these values for you **/
+//int centerServo;         // center servo position
+//int pulseWidth;          // servo pulse width
+//long lastPulse   = 0;    // recorded time (ms) of the last pulse
 //servo vars
 
 boolean motionIsOn = false;
@@ -142,9 +146,10 @@ void initServo()
 {
   Serial.println("initServo");
   // set up servo pin
-  pinMode(servoPin, OUTPUT);  // Set servo pin 18 (analog 4) as an output pin
-  centerServo = maxPulse - ((maxPulse - minPulse)/2);
-  pulseWidth = centerServo;   // Give the servo a starting point (or it floats)
+//  pinMode(servoPin, OUTPUT);  // Set servo pin 18 (analog 4) as an output pin
+//  centerServo = maxPulse - ((maxPulse - minPulse)/2);
+//  pulseWidth = centerServo;   // Give the servo a starting point (or it floats)
+  myservo.attach(9);
 }
 
 void loop()
@@ -314,38 +319,76 @@ void playcomplete(char *name) {
 }
 
 void animateMouth(){
-   char i;
-   uint8_t volume;
-   int v2;
-   
-   volume = 0;
-   
-    for (i=0; i<8; i++)
-    {
-      v2 = analogRead(1);
-      delay(5);
-    }
-          
-       Serial.println (v2);
-
-       if (v2 > 268)
-      {
-         //pulseWidth = 1800;
-         pulseWidth = maxPulse;
-         mouthchange = 1;
-      }
-         else
-      {
-        // pulseWidth = 800;
-        pulseWidth = minPulse;
-         mouthchange = 1;
-      }
-    
+//   char i;
+//   uint8_t volume;
+//   int v2;
+//   
+//   volume = 0;
+//   
+//    for (i=0; i<8; i++)
+//    {
+//      v2 = analogRead(1);
+//      delay(5);
+//    }
+//          
+//       Serial.println (v2);
+//
+//       if (v2 > 268)
+//      {
+//         //pulseWidth = 1800;
+//         pulseWidth = 1200;
+//        // pulseWidth = maxPulse;
+//         mouthchange = 1;
+//      }
+//         else
+//      {
+//         //pulseWidth = 800;
+//         pulseWidth = 1100;
+//        //pulseWidth = minPulse;
+//         mouthchange = 1;
+//      }
+//    
+//      
+//      digitalWrite(servoPin, HIGH);   // start the pulse
+//      delayMicroseconds(pulseWidth);  // pulse width
+//      digitalWrite(servoPin, LOW);    // stop the pulse
       
-      digitalWrite(servoPin, HIGH);   // start the pulse
-      delayMicroseconds(pulseWidth);  // pulse width
-      digitalWrite(servoPin, LOW);    // stop the pulse
+      //int val;
+      //val = incPulse( myservo.read(), 1);
+
+      //myservo.write(val);
+      //myservo.write(degreesToUS(val));
+      //delay(10);
+      
+      stepper();
   
+}
+
+// this function just increments a value until it reaches a maximum
+int incPulse(int val, int inc){
+   if( val + inc  > 2000 )
+	return 1000 ;
+   else
+	return val + inc;
+
+//   if( val > 1900 )
+//	return 0 ;
+//   else
+//	return val + inc;
+
+}
+
+int stepper(){
+  for(pos = 1400; pos < 1700; pos += 5)  // goes from 0 degrees to 180 degrees 
+  {                                  // in steps of 1 degree 
+    myservo.write(pos);              // tell servo to go to position in variable 'pos' 
+    delay(15);                       // waits 15ms for the servo to reach the position 
+  } 
+  for(pos = 1700; pos>=1400; pos -=5)     // goes from 180 degrees to 0 degrees 
+  {                                
+    myservo.write(pos);              // tell servo to go to position in variable 'pos' 
+    delay(15);                       // waits 15ms for the servo to reach the position 
+  } 
 }
 
 
