@@ -32,7 +32,8 @@ Thermal printer(printer_RX_Pin, printer_TX_Pin, 19200);
 //this is the service i'm calling
 //http://www.suniljohn.com/labs/dogsoflatenight/twitterpoll.php?since_id=0&track=insultcomicdog%20OR%20formetopoopon%20OR%20%22for%20me%20to%20poop%20on%22%20-RT&rpp=1
 
-char twitterSearchTerms[] = "%22insult%20comic%20dog%22%20OR%20formetopoopon%20OR%20%22for%20me%20to%20poop%20on%22%20-RT";
+//char twitterSearchTerms[] = "%22insult%20comic%20dog%22%20OR%20formetopoopon%20OR%20%22for%20me%20to%20poop%20on%22%20-RT";
+char twitterSearchTerms[] = "%20formetopoopon%20OR%20%22for%20me%20to%20poop%20on%22%20-RT"; //just using catch phrase now to make search more more granuluar and save on thermal paper!!
 char current_since_id_str[20];
 char next_since_id_str[20];
 
