@@ -26,8 +26,17 @@ int alarmValue = 0;
 #include <ServoTimer2.h>  // the servo library
 
 //servo vars
-ServoTimer2 myservo;
-int servoPin = 9; 
+int activeServo= 0;
+
+ServoTimer2 myservo1;
+ServoTimer2 myservo2;
+ServoTimer2 myservo3;
+ServoTimer2 myservo4;
+
+int servoPin1 = 6;//9; 
+int servoPin2 = 7;//10;
+int servoPin3 = 8;//10;
+int servoPin4 = 9;//10;
 #define degreesToUS( _degrees) (_degrees * 6 + 900) // macro to convert degrees to microseconds
 int pos = 50;    // variable to store the servo position 
 //servo vars
@@ -82,9 +91,14 @@ void initWAVShield()
   Serial.println(freeRam());      // if this is under 150 bytes it may spell trouble!
   
   // Set the output pins for the DAC control. This pins are defined in the library
-  pinMode(6, OUTPUT);
-  pinMode(7, OUTPUT);
-  pinMode(8, OUTPUT);
+//  pinMode(6, OUTPUT);
+//  pinMode(7, OUTPUT);
+//  pinMode(8, OUTPUT);
+//  pinMode(5, OUTPUT);
+  
+  pinMode(2, OUTPUT);
+  pinMode(3, OUTPUT);
+  pinMode(4, OUTPUT);
   pinMode(5, OUTPUT);
  
   //  if (!card.init(true)) { //play with 4 MHz spi if 8MHz isn't working for you
@@ -134,8 +148,22 @@ void initMotionSensor()
 void initServo()
 {
   Serial.println("initServo");
+  
+  pinMode(servoPin1, OUTPUT);
+  pinMode(servoPin2, OUTPUT);
+  pinMode(servoPin3, OUTPUT);
+  pinMode(servoPin4, OUTPUT);
+
   // set up servo pin
-  myservo.attach(9);
+  myservo1.attach(servoPin1);
+  myservo2.attach(servoPin2);
+  myservo3.attach(servoPin3);
+  myservo4.attach(servoPin4);
+  
+  stepper1();
+  stepper2();
+  stepper3();
+  stepper4();
 }
 
 void loop()
@@ -302,6 +330,8 @@ void playcomplete(char *name) {
 }
 
 void animateMouthWAV(){
+  Serial.println("animateMouthWAV");
+
   char i;
   uint8_t volume;
   int v2;
@@ -319,13 +349,13 @@ void animateMouthWAV(){
    if (volume > 200) {
      for(pos = 1400; pos < 1700; pos += 15)  // goes from 0 degrees to 180 degrees 
       {                                  // in steps of 1 degree 
-        myservo.write(pos);              // tell servo to go to position in variable 'pos' 
+        myservo1.write(pos);              // tell servo to go to position in variable 'pos' 
         delay(15);                       // waits 15ms for the servo to reach the position 
       } 
    } else {
       for(pos = 1700; pos>=1400; pos -=15)     // goes from 180 degrees to 0 degrees 
       {                                
-        myservo.write(pos);              // tell servo to go to position in variable 'pos' 
+        myservo1.write(pos);              // tell servo to go to position in variable 'pos' 
         delay(15);                       // waits 15ms for the servo to reach the position 
       } 
    }
@@ -335,22 +365,75 @@ void animateMouthWAV(){
 }
 
 void animateMouth(){
-      stepper();
+  if(activeServo==0){
+     //stepper1();
+     stepper2();
+  } else if(activeServo==1){
+     stepper3();
+  } else if(activeServo==2){
+     stepper4();
+  } 
 }
 
-int stepper(){
+int stepper1(){
+  Serial.println("stepper1");
+
   for(pos = 1400; pos < 1700; pos += 15)  // goes from 0 degrees to 180 degrees 
   {                                  // in steps of 1 degree 
-    myservo.write(pos);              // tell servo to go to position in variable 'pos' 
+    myservo1.write(pos);              // tell servo to go to position in variable 'pos' 
     delay(15);                       // waits 15ms for the servo to reach the position 
   } 
   for(pos = 1700; pos>=1400; pos -=15)     // goes from 180 degrees to 0 degrees 
   {                                
-    myservo.write(pos);              // tell servo to go to position in variable 'pos' 
+    myservo1.write(pos);              // tell servo to go to position in variable 'pos' 
     delay(15);                       // waits 15ms for the servo to reach the position 
   } 
 }
 
+int stepper2(){
+  Serial.println("stepper2");
+
+  for(pos = 1400; pos < 1700; pos += 15)  // goes from 0 degrees to 180 degrees 
+  {                                  // in steps of 1 degree 
+    myservo2.write(pos);              // tell servo to go to position in variable 'pos' 
+    delay(15);                       // waits 15ms for the servo to reach the position 
+  } 
+  for(pos = 1700; pos>=1400; pos -=15)     // goes from 180 degrees to 0 degrees 
+  {                                
+    myservo2.write(pos);              // tell servo to go to position in variable 'pos' 
+    delay(15);                       // waits 15ms for the servo to reach the position 
+  } 
+}
+
+int stepper3(){
+  Serial.println("stepper3");
+
+  for(pos = 1400; pos < 1700; pos += 15)  // goes from 0 degrees to 180 degrees 
+  {                                  // in steps of 1 degree 
+    myservo3.write(pos);              // tell servo to go to position in variable 'pos' 
+    delay(15);                       // waits 15ms for the servo to reach the position 
+  } 
+  for(pos = 1700; pos>=1400; pos -=15)     // goes from 180 degrees to 0 degrees 
+  {                                
+    myservo3.write(pos);              // tell servo to go to position in variable 'pos' 
+    delay(15);                       // waits 15ms for the servo to reach the position 
+  } 
+}
+
+int stepper4(){
+  Serial.println("stepper4");
+
+  for(pos = 1400; pos < 1700; pos += 15)  // goes from 0 degrees to 180 degrees 
+  {                                  // in steps of 1 degree 
+    myservo4.write(pos);              // tell servo to go to position in variable 'pos' 
+    delay(15);                       // waits 15ms for the servo to reach the position 
+  } 
+  for(pos = 1700; pos>=1400; pos -=15)     // goes from 180 degrees to 0 degrees 
+  {                                
+    myservo4.write(pos);              // tell servo to go to position in variable 'pos' 
+    delay(15);                       // waits 15ms for the servo to reach the position 
+  } 
+}
 
 void playfile(char *name) {
   
@@ -389,10 +472,13 @@ void receiveEvent(int howMany)
     speakJetIsOn=false;
   } else if (x==1) {
     motionIsOn=true;
-  } else if (x==2) {
+  } else if (x==2 && speakJetIsOn == false) {
+    activeServo = random(3);
+    Serial.println("activeServo");
+    Serial.println(activeServo);
     speakJetIsOn=true;
   }
   
-  Serial.println(x);
+  //Serial.println(x);
 
 }

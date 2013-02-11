@@ -317,6 +317,7 @@ void loop()
             sjSerial.println("There is no poop on twitter. Switching to motion detection mode.");
             setLEDStatus(STATUS_MOTION_DETECTION_MODE);
             hideTweetCounter();
+            showNixieClock();
         }
         
           Serial.println();
@@ -358,6 +359,7 @@ void loop()
 
 void showTweetCounter()
 {
+  //Serial2.println("b");
   sprintf(buffer, "%06d", tweets); 
   Serial2.println(buffer);
 }
@@ -365,6 +367,11 @@ void showTweetCounter()
 void hideTweetCounter()
 {
   Serial2.println("b"); //turn off Nixie counter
+}
+
+void showNixieClock()
+{
+  Serial2.println("t"); //switch into Time Display Mode
 }
 
 void resetTweetCounter()
