@@ -365,8 +365,9 @@ void animateMouthWAV(){
 }
 
 void animateMouth(){
+  //stepper1();
+
   if(activeServo==0){
-     //stepper1();
      stepper2();
   } else if(activeServo==1){
      stepper3();
@@ -470,9 +471,19 @@ void receiveEvent(int howMany)
   if(x==0){
     motionIsOn=false;
     speakJetIsOn=false;
+    
+    if (wave.isplaying) {// already playing something, so stop it!
+        wave.stop(); // stop it
+    }
+    
   } else if (x==1) {
     motionIsOn=true;
   } else if (x==2 && speakJetIsOn == false) {
+    
+    if (wave.isplaying) {// already playing something, so stop it!
+        wave.stop(); // stop it
+    }
+    
     activeServo = random(3);
     Serial.println("activeServo");
     Serial.println(activeServo);
