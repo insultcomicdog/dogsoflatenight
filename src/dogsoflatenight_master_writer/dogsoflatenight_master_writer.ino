@@ -28,7 +28,6 @@ int printer_TX_Pin = 26; //yellow wire
 Thermal printer(printer_RX_Pin, printer_TX_Pin, 19200);
 //Thermal Printer vars
 
-
 //this is the service i'm calling
 //http://www.suniljohn.com/labs/dogsoflatenight/twitterpoll.php?since_id=0&track=insultcomicdog%20OR%20formetopoopon%20OR%20%22for%20me%20to%20poop%20on%22%20-RT&rpp=1
 
@@ -56,7 +55,10 @@ boolean isSearching = false;
 boolean isPlayingSound = false;
 boolean speakJetIsBusy = false;
 
-
+boolean useEmic2 = true;
+boolean emic2IsBusy = false;
+int activeEmic2Voice= 0;
+boolean isFirstTimeSearching=true;
 
 byte slaveMode = 0;
 int motionCounter= 0;
@@ -66,6 +68,8 @@ int maxResponseTimeOut = 5000;
 
 unsigned long currentTime;
 unsigned long loopTime;
+int loopDuration = 0;
+
 
 //status CONSTS
 int STATUS_MOTION_DETECTION_MODE = 0;
@@ -85,21 +89,35 @@ int statusMotionDectionModeRed = 45; //red
 int tweets = 0;
 char buffer[7];
 
+int rockerSwitchPin = 32;
+boolean installationIsActive = false;
 
 void setup()
 {
   Serial.begin(9600); 
   Serial2.begin(9600); // for nixie counter
+  Serial3.begin(9600); //for emic 2
+
   resetTweetCounter();
   initStatusLEDs();
   setLEDStatus(STATUS_WIFI_DISCONNECTED);
   Wire.begin(); // join i2c bus (address optional for master)
   Serial.println("master setup");
   
+  pinMode(rockerSwitchPin, INPUT);      // sets the digital pin 32 as input
+  
+  if (digitalRead(rockerSwitchPin) == HIGH) {
+    installationIsActive = true;
+  }
+  
   WiFly.begin();
   
   if (!WiFly.join(ssid, passphrase)) {
     Serial.println("Association failed.");
+    
+    // Speak some text
+    readString("The Dogs of Late Night is offline. Check your internet connection and please try again.");  // Send the desired string to convert to speech
+    
     while (1) {
      // Hang on failure.
     }
@@ -110,7 +128,11 @@ void setup()
   
   delay(10000);
   
-  initSpeakJet();
+  if(useEmic2) {
+     initEmic2();
+  } else{
+     initSpeakJet();
+  }
   
   currentTime = millis();
   loopTime = currentTime;
@@ -160,7 +182,36 @@ void initSpeakJet()
   pinMode(busyPin, INPUT);
   sjSerial.begin(9600);// set the data rate for the SoftwareSerial port
   delay(1000); // wait a second for the Arduino resets to finish (speaks "ready")
-  sjSerial.println("The Dogs of Late Night is now online. All your poop are belong to us."); // send it to the SpeakJet
+  readString("The Dogs of Late Night is now online. All your poop are belong to us."); // send it to the SpeakJet
+  
+  //readString("Now this is the story all about how My life got flipped, turned upside down And I'd like to take a minute just sit right there I'll tell you how I became the prince of a town called Bel-air In west Philadelphia born and raised On the playground where I spent most of my days Chilling out, maxing, relaxing all cool And all shooting some b-ball outside of the school When a couple of guys, they were up to no good Started making trouble in my neighbourhood I got in one little fight and my mom got scared And said You're moving with your auntie and uncle in Bel-air I whistled for a cab and when it came near the License plate said fresh and had a dice in the mirror If anything I could say that this cab was rare But I thought nah, forget it, yo homes to Bel-air! I pulled up to a house about seven or eight And I yelled to the cabby Yo, homes smell you later! Looked at my kingdom I was finally there To sit on my throne as the prince of Bel-air");  // Send the desired string to convert to speech
+
+}
+
+void initEmic2(){
+  
+  Serial.println("initEmic2");
+
+  /*
+    When the Emic 2 powers on, it takes about 3 seconds for it to successfully
+    intialize. It then sends a ":" character to indicate it's ready to accept
+    commands. If the Emic 2 is already initialized, a CR will also cause it
+    to send a ":"
+  */
+  Serial3.print('\n');             // Send a CR in case the system is already up
+  while (Serial3.read() != ':');   // When the Emic 2 has initialized and is ready, it will send a single ':' character, so wait here until we receive it
+  delay(10);                          // Short delay
+  Serial3.flush();                 // Flush the receive buffer
+  
+//  Serial3.print('N');
+//  Serial3.print(0);
+//  Serial3.print('\n');
+
+  // Speak some text
+  readString("The Dogs of Late Night is now online. All your poop are belong to us.");  // Send the desired string to convert to speech
+  
+  //readString("Now this is the story all about how My life got flipped, turned upside down And I'd like to take a minute just sit right there I'll tell you how I became the prince of a town called Bel-air In west Philadelphia born and raised On the playground where I spent most of my days Chilling out, maxing, relaxing all cool And all shooting some b-ball outside of the school When a couple of guys, they were up to no good Started making trouble in my neighbourhood I got in one little fight and my mom got scared And said You're moving with your auntie and uncle in Bel-air I whistled for a cab and when it came near the License plate said fresh and had a dice in the mirror If anything I could say that this cab was rare But I thought nah, forget it, yo homes to Bel-air! I pulled up to a house about seven or eight And I yelled to the cabby Yo, homes smell you later! Looked at my kingdom I was finally there To sit on my throne as the prince of Bel-air");  // Send the desired string to convert to speech
+
 }
 
 void SJBusy(){
@@ -186,28 +237,92 @@ void SJBusy(){
   }
 }
 
+void checkEmic2Complete(){
+  while (Serial3.read() != ':' && installationIsActive == true){
+     Serial.println("emic2IsBusy");
+
+     slaveMode=2;
+     Wire.beginTransmission(4); // transmit to device #4
+     Wire.write(slaveMode);              // sends one byte  
+     Wire.endTransmission();    // stop transmitting
+  } 
+  
+  Serial.println("done speech");
+  
+  emic2IsBusy = false;
+  slaveMode=0;
+  Wire.beginTransmission(4); // transmit to device #4
+  Wire.write(slaveMode);              // sends one byte  
+  Wire.endTransmission();    // stop transmitting
+}
+
+void stopApp(){
+  slaveMode=0;
+  motionCounter=0;
+}
+
+void checkRockerSwitch(){
+  if (digitalRead(rockerSwitchPin) == HIGH) {
+    if(!installationIsActive){
+        Serial.println("LEDS ON");
+        installationIsActive=true;
+        Serial3.print('X');
+        Serial3.print('\n');
+        
+        Serial3.print('S');
+        Serial3.print("The Dogs of Late Night is active."); 
+        Serial3.print('\n');
+    }
+  } else {
+    if(installationIsActive){
+        Serial.println("LEDS OFF");
+        installationIsActive=false;
+        stopApp();
+        Serial3.print('X');
+        Serial3.print('\n');
+        
+        Serial3.print('S');
+        Serial3.print("The Dogs of Late Night is inactive."); 
+        Serial3.print('\n');
+    }
+  }
+}
+
 void loop()
 {
   
-  SJBusy();
+  checkRockerSwitch();
   
+  if(useEmic2 && emic2IsBusy) {
+     checkEmic2Complete();
+  } else{
+     SJBusy();
+  }
+
   currentTime = millis();
   
   if(enableTwitterSearch==true) {
     
         if(isSearching==false){
           Serial.println("twitter search enabled");
-          sjSerial.println("Serching Twitter for poop."); //this is not a typo...it actually sounds better read by the SpeakJet shield
+          //readString("Serching Twitter for poop."); //this is not a typo...it actually sounds better read by the SpeakJet shield
+          readString("Searching Twitter for poop.");
+
           isSearching=true;
           showTweetCounter();
         }
-       
+
         if(currentTime >= (loopTime + 60000)){ 
-    
+        
         if (client.connect()) {
         
             Serial.println("making HTTP request...");
-          
+            
+//            if(isFirstTimeSearching){
+//              isFirstTimeSearching=false; 
+//              loopDuration = 60000;
+//             }
+ 
       //    client.println("GET /labs/dogsoflatenight/twitterpoll.php?since_id=0&track=insultcomicdog%20OR%20formetopoopon HTTP/1.1");
       //    client.println("HOST: www.suniljohn.com");
       //    client.println();
@@ -224,7 +339,6 @@ void loop()
           Serial.println("current_since_id_str");
           Serial.println(current_since_id_str);
       
-          
           client.print("GET /labs/dogsoflatenight/twitterpoll.php?since_id=");
           client.print(current_since_id_str);
           client.print("&track=");
@@ -234,20 +348,24 @@ void loop()
           client.println(" HTTP/1.1");
           client.println("HOST: www.suniljohn.com");
           client.println();
-                    
+ 
           Serial.println("sent HTTP request...");
           
           while (client.connected()) {
-                  Serial.println("client is connected");
-                  responseTimeoutCounter++;
-                  Serial.println(responseTimeoutCounter);
-                 if(responseTimeoutCounter >= maxResponseTimeOut){ 
-                     Serial.println("we timed out");
-                     responseTimeoutCounter=0;
-                     totalnumsearchresults_str[0] = '0';
-                     delay(1);
-                     client.stop();
-                  }
+            
+           checkRockerSwitch();
+ 
+           Serial.println("client is connected");
+           responseTimeoutCounter++;
+           Serial.println(responseTimeoutCounter);
+           
+           if(responseTimeoutCounter >= maxResponseTimeOut){ 
+               Serial.println("we timed out");
+               responseTimeoutCounter=0;
+               totalnumsearchresults_str[0] = '0';
+               delay(1);
+               client.stop();
+            }
                   
             if (client.available()) {
                   Serial.println("waiting for response");
@@ -288,25 +406,22 @@ void loop()
         if(totalnumsearchresults!=0 && strcmp(current_since_id_str, next_since_id_str) != 0){ // sometimes twitter api is returning the same since id back as previous search
             Serial.println("we found a new tweet");
             
-            tweets++; //increment tweet count for Nixie counter
-            showTweetCounter();
-            
-            //disabling this for now to save on paper
-            printSRC(created_at); 
-            delay(3000);
-            printSRC(from_user); 
-            delay(3000);
-            printTweet(tweet); 
-            delay(3000);
-            advancePrinter();
-            delay (5000);
-            
-            readTweet(tweet);
-      
-//            for (int i=0; i <= 20; i++){
-//              current_since_id_str[i] = next_since_id_str[i];
-//            }
-            
+            if(installationIsActive){
+                tweets++; //increment tweet count for Nixie counter
+                showTweetCounter();
+    
+                printSRC(created_at); 
+                delay(3000);
+                printSRC(from_user); 
+                delay(3000);
+                printTweet(tweet); 
+                delay(3000);
+                advancePrinter();
+                
+                delay (5000);
+                readString(tweet);
+            }
+
             strncpy(current_since_id_str, next_since_id_str, 20);
             
         } else {
@@ -314,7 +429,7 @@ void loop()
             Serial.println("there are no new results for my keywords");
             enableTwitterSearch=false;
             Serial.println("twitter search disabled");
-            sjSerial.println("There is no poop on twitter. Switching to motion detection mode.");
+            readString("There is no poop on twitter. Switching to motion detection mode.");
             setLEDStatus(STATUS_MOTION_DETECTION_MODE);
             hideTweetCounter();
             showNixieClock();
@@ -334,10 +449,22 @@ void loop()
         // don't make this less than 30000 (30 secs), because you can't connect to the twitter servers faster (you'll be banned)
   } else{
     
-    if(speakJetIsBusy==false){  
-        slaveMode=1;
+    if(speakJetIsBusy==false){
+      
+        if(installationIsActive){
+           slaveMode=1;
+        }  
+       
         motionCounter++;
-        if(motionCounter==100) {
+        
+        if(motionCounter==1500) {
+          
+           if(useEmic2){
+             //randomizeEmic2Voice();
+           }
+        }
+        
+        if(motionCounter==3000) {
             slaveMode=0;
             motionCounter=0;
             enableTwitterSearch=true;
@@ -345,7 +472,6 @@ void loop()
             setLEDStatus(STATUS_WIFI_CONNECTED);
         }
         
-        Serial.println("motionCounter");
         Serial.println(motionCounter);
      }
   }
@@ -353,13 +479,10 @@ void loop()
   Wire.beginTransmission(4); // transmit to device #4
   Wire.write(slaveMode);              // sends one byte  
   Wire.endTransmission();    // stop transmitting
-  delay(500);
-  
 }
 
 void showTweetCounter()
 {
-  //Serial2.println("b");
   sprintf(buffer, "%06d", tweets); 
   Serial2.println(buffer);
 }
@@ -379,9 +502,36 @@ void resetTweetCounter()
     Serial2.println("r"); //zero pad the Nixie counter
 }
 
-void readTweet(String thisString)
+void randomizeEmic2Voice()
 {
-  sjSerial.println(thisString); 
+      Serial.println("randomizeEmic2Voice");
+      // print a random number from 0 to 8
+      activeEmic2Voice  = random(9);
+      Serial3.print('N');
+      Serial3.print(activeEmic2Voice);
+      Serial3.print('\n');
+      
+      Serial.println("activeEmic2Voice");
+      Serial.println(activeEmic2Voice);
+}
+
+void readString(String thisString)
+{ 
+  
+  if(installationIsActive){
+      if(useEmic2) {
+          Serial.println("readString");
+          Serial.println(thisString);
+          emic2IsBusy=true;
+    
+          Serial.println("starting speech");
+          Serial3.print('S');
+          Serial3.print(thisString); 
+          Serial3.print('\n');
+      } else{
+           sjSerial.println(thisString); 
+      }
+  } 
 }
 
 void printTweet(String thisString)

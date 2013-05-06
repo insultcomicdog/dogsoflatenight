@@ -39,6 +39,11 @@ int servoPin3 = 8;//10;
 int servoPin4 = 9;//10;
 #define degreesToUS( _degrees) (_degrees * 6 + 900) // macro to convert degrees to microseconds
 int pos = 50;    // variable to store the servo position 
+
+int inPos = 1400;
+int outPos = 500;
+int servoSpd = 30;
+
 //servo vars
 
 boolean motionIsOn = false;
@@ -347,13 +352,13 @@ void animateMouthWAV(){
    }
    
    if (volume > 200) {
-     for(pos = 1400; pos < 1700; pos += 15)  // goes from 0 degrees to 180 degrees 
+     for(pos = 1400; pos < 2300; pos += servoSpd)  // goes from 0 degrees to 180 degrees 
       {                                  // in steps of 1 degree 
         myservo1.write(pos);              // tell servo to go to position in variable 'pos' 
         delay(15);                       // waits 15ms for the servo to reach the position 
       } 
    } else {
-      for(pos = 1700; pos>=1400; pos -=15)     // goes from 180 degrees to 0 degrees 
+      for(pos = 1700; pos>=2300; pos -=servoSpd)     // goes from 180 degrees to 0 degrees 
       {                                
         myservo1.write(pos);              // tell servo to go to position in variable 'pos' 
         delay(15);                       // waits 15ms for the servo to reach the position 
@@ -366,6 +371,8 @@ void animateMouthWAV(){
 
 void animateMouth(){
   //stepper1();
+  
+  //stepper2();
 
   if(activeServo==0){
      stepper2();
@@ -379,27 +386,27 @@ void animateMouth(){
 int stepper1(){
   Serial.println("stepper1");
 
-  for(pos = 1400; pos < 1700; pos += 15)  // goes from 0 degrees to 180 degrees 
-  {                                  // in steps of 1 degree 
-    myservo1.write(pos);              // tell servo to go to position in variable 'pos' 
-    delay(15);                       // waits 15ms for the servo to reach the position 
-  } 
-  for(pos = 1700; pos>=1400; pos -=15)     // goes from 180 degrees to 0 degrees 
-  {                                
-    myservo1.write(pos);              // tell servo to go to position in variable 'pos' 
-    delay(15);                       // waits 15ms for the servo to reach the position 
-  } 
+  for(pos = 1400; pos < 2300; pos += servoSpd) // goes from 0 degrees to 180 degrees
+  { // in steps of 1 degree
+    myservo1.write(pos); // tell servo to go to position in variable 'pos'
+    delay(15); // waits 15ms for the servo to reach the position
+  }
+  for(pos = 2300; pos>=1400; pos -=servoSpd) // goes from 180 degrees to 0 degrees
+  {
+    myservo1.write(pos); // tell servo to go to position in variable 'pos'
+    delay(15); // waits 15ms for the servo to reach the position
+  }
 }
 
 int stepper2(){
   Serial.println("stepper2");
 
-  for(pos = 1400; pos < 1700; pos += 15)  // goes from 0 degrees to 180 degrees 
+  for(pos = inPos; pos >=outPos; pos -= servoSpd)  // goes from 0 degrees to 180 degrees 
   {                                  // in steps of 1 degree 
     myservo2.write(pos);              // tell servo to go to position in variable 'pos' 
     delay(15);                       // waits 15ms for the servo to reach the position 
   } 
-  for(pos = 1700; pos>=1400; pos -=15)     // goes from 180 degrees to 0 degrees 
+  for(pos = outPos; pos<inPos; pos +=servoSpd)     // goes from 180 degrees to 0 degrees 
   {                                
     myservo2.write(pos);              // tell servo to go to position in variable 'pos' 
     delay(15);                       // waits 15ms for the servo to reach the position 
@@ -409,12 +416,12 @@ int stepper2(){
 int stepper3(){
   Serial.println("stepper3");
 
-  for(pos = 1400; pos < 1700; pos += 15)  // goes from 0 degrees to 180 degrees 
+  for(pos = inPos; pos >=outPos; pos -= servoSpd)  // goes from 0 degrees to 180 degrees 
   {                                  // in steps of 1 degree 
     myservo3.write(pos);              // tell servo to go to position in variable 'pos' 
     delay(15);                       // waits 15ms for the servo to reach the position 
   } 
-  for(pos = 1700; pos>=1400; pos -=15)     // goes from 180 degrees to 0 degrees 
+  for(pos = outPos; pos<inPos; pos +=servoSpd)     // goes from 180 degrees to 0 degrees 
   {                                
     myservo3.write(pos);              // tell servo to go to position in variable 'pos' 
     delay(15);                       // waits 15ms for the servo to reach the position 
@@ -424,12 +431,12 @@ int stepper3(){
 int stepper4(){
   Serial.println("stepper4");
 
-  for(pos = 1400; pos < 1700; pos += 15)  // goes from 0 degrees to 180 degrees 
+  for(pos = inPos; pos >=outPos; pos -= servoSpd)  // goes from 0 degrees to 180 degrees 
   {                                  // in steps of 1 degree 
     myservo4.write(pos);              // tell servo to go to position in variable 'pos' 
     delay(15);                       // waits 15ms for the servo to reach the position 
   } 
-  for(pos = 1700; pos>=1400; pos -=15)     // goes from 180 degrees to 0 degrees 
+  for(pos = outPos; pos<inPos; pos +=servoSpd)     // goes from 180 degrees to 0 degrees 
   {                                
     myservo4.write(pos);              // tell servo to go to position in variable 'pos' 
     delay(15);                       // waits 15ms for the servo to reach the position 
