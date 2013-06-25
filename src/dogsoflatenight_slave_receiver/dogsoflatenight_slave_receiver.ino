@@ -59,6 +59,7 @@ void setup()
     
   initWAVShield();
   initMotionSensor();
+  initSFX();
   initServo();
 }
 
@@ -142,6 +143,19 @@ void initWAVShield()
   
   // Whew! We got past the tough parts.
   putstring_nl("Ready!");
+  
+  //playStartupSFX("sm_coin.wav");
+  //playStartupSFX("sm_1up.wav");
+}
+
+void initSFX(){
+  playStartupSFX("sm_coin.wav");
+  playStartupSFX("sm_coin.wav");
+  playStartupSFX("sm_coin.wav");
+  playStartupSFX("sm_coin.wav");
+  playStartupSFX("sm_coin.wav");
+  playStartupSFX("sm_coin.wav");
+  playStartupSFX("sm_1up.wav");
 }
 
 void initMotionSensor()
@@ -334,6 +348,15 @@ void playcomplete(char *name) {
  
 }
 
+void playStartupSFX(char *name) {
+  // call our helper to find and play this name
+  playfile(name);
+  while (wave.isplaying) {
+  // do nothing while its playing
+  }
+  // now its done playing
+}
+
 void animateMouthWAV(){
   Serial.println("animateMouthWAV");
 
@@ -463,6 +486,13 @@ void playfile(char *name) {
   wave.play();
 }
 
+//Legend
+// x = 0 kill all
+// x = 2 SpeakJet and EMic2 is Busy
+// x = 1 Motion Detection Mode
+// x = 3 Coin SFX
+// x = 4 1Up SFX
+
 // function that executes whenever data is received from master
 // this function is registered as an event, see setup()
 void receiveEvent(int howMany)
@@ -495,8 +525,14 @@ void receiveEvent(int howMany)
     Serial.println("activeServo");
     Serial.println(activeServo);
     speakJetIsOn=true;
+  } else if (x==3) {
+    //playStartupSFX("sm_coin.wav");
+    //Serial.println("play coin");     
+  } else if (x==4) {
+    //playStartupSFX("sm_1up.wav");
+    //Serial.println("play 1up");
   }
   
-  //Serial.println(x);
+  Serial.println(x);
 
 }

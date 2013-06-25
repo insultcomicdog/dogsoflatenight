@@ -104,6 +104,8 @@ void setup()
   Wire.begin(); // join i2c bus (address optional for master)
   Serial.println("master setup");
   
+  initNixieCounter();
+  
   pinMode(rockerSwitchPin, INPUT);      // sets the digital pin 32 as input
   
   if (digitalRead(rockerSwitchPin) == HIGH) {
@@ -138,6 +140,76 @@ void setup()
   loopTime = currentTime;
   current_since_id_str[0]='0'; 
 }
+
+void initNixieCounter()
+{
+
+  String num;
+  int count;
+  
+  for (count=0;count<=6;count++){
+    
+    if(count==0){
+        for (int i = 9;i>=0;i--){
+          num = String(i) + "99999";
+          updateNixieCounter(num);
+        }
+        //playCoinSFX();
+    } else if(count==1){
+        for (int i = 9;i>=0;i--){
+          num = "0" + String(i) + "9999";
+          updateNixieCounter(num);
+        } 
+        //playCoinSFX();
+    } else if(count==2){
+        for (int i = 9;i>=0;i--){
+          num = "00" + String(i) + "999";
+          updateNixieCounter(num);
+        } 
+         //playCoinSFX();
+    } else if(count==3){
+         for (int i = 9;i>=0;i--){
+          num = "000" + String(i) + "99";
+          updateNixieCounter(num);
+         }
+         //playCoinSFX();
+    } else if(count==4){
+         for (int i = 9;i>=0;i--){
+          num = "0000" + String(i) + "9";
+          updateNixieCounter(num);
+         }
+         //playCoinSFX();
+    } else if(count==5){
+         for (int i = 9;i>=0;i--){
+          num = "00000" + String(i) + "";
+          updateNixieCounter(num);
+         }
+         //play1UPSFX();
+    }
+  }
+}
+
+void updateNixieCounter(String num)
+{
+   //Serial.println(num);
+   Serial2.println(num);
+   delay(98);
+}
+
+void playCoinSFX(){
+    byte sfxCode = 3;
+    Wire.beginTransmission(4); // transmit to device #4
+    Wire.write(sfxCode);              // sends one byte  
+    Wire.endTransmission();    // stop transmitting 
+}
+
+void play1UPSFX(){
+    byte sfxCode = 4;
+    Wire.beginTransmission(4); // transmit to device #4
+    Wire.write(sfxCode);              // sends one byte  
+    Wire.endTransmission();    // stop transmitting 
+}
+
 
 void initStatusLEDs()
 {
@@ -369,6 +441,7 @@ void loop()
                   
             if (client.available()) {
                   Serial.println("waiting for response");
+                  
                   //char c = client.read();
                   //Serial.print(c);
                   if((finder.getString("<totalnumsearchresults>","</totalnumsearchresults>",totalnumsearchresults_str,200)!=0));
